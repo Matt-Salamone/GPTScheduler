@@ -1,0 +1,19 @@
+Starting scheduler test bench...
+[FAIL] Test: c10-fcfs.in (Scheduler did not generate an output file)
+[FAIL] Test: c10-rr.in (Scheduler did not generate an output file)
+[FAIL] Test: c10-sjf.in (Scheduler did not generate an output file)
+[FAIL] Test: c2-fcfs.in (Scheduler did not generate an output file)
+[FAIL] Test: c2-rr.in (Scheduler did not generate an output file)
+[FAIL] Test: c2-sjf.in (Scheduler did not generate an output file)
+[FAIL] Test: c3-stride.in (Scheduler did not generate an output file)
+[FAIL] Test: c5-fcfs.in (Scheduler did not generate an output file)
+[FAIL] Test: c5-rr.in (Scheduler did not generate an output file)
+[FAIL] Test: c5-sjf.in (Scheduler did not generate an output file)
+[FAIL] Test: c5-stride.in (Scheduler did not generate an output file)
+
+==============================
+        Test Summary
+==============================
+Passed: 0
+Failed: 11
+==============================

@@ -1,0 +1,9 @@
+processcount 5
+runfor 30
+use stride
+process name P1 arrival 0 burst 5 tickets 200
+process name P2 arrival 1 burst 7 tickets 100
+process name P3 arrival 3 burst 3 tickets 50
+process name P4 arrival 8 burst 4 tickets 150
+process name P5 arrival 10 burst 6 tickets 100
+end

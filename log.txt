@@ -1,0 +1,74 @@
+Starting scheduler test bench...
+[FAIL] Test: c10-fcfs.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c10-rr.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c10-sjf.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c2-fcfs.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c2-rr.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c2-sjf.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c3-stride.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c5-fcfs.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c5-rr.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c5-sjf.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+[FAIL] Test: c5-stride.in (Scheduler script exited with an error)
+--- STDERR ---
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+
+--- STDOUT ---
+No stdout output.
+
+==============================
+        Test Summary
+==============================
+Passed: 0
+Failed: 11
+==============================

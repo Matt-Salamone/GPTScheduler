@@ -1,0 +1,34 @@
+3 processes
+Using Stride Scheduling
+
+Time   0 : A arrived
+Time   0 : A selected (burst   6)
+Time   1 : A selected (burst   5)
+Time   2 : B arrived
+Time   2 : B selected (burst   4)
+Time   3 : A selected (burst   4)
+Time   4 : C arrived
+Time   4 : C selected (burst   2)
+Time   5 : C selected (burst   1)
+Time   6 : C finished
+Time   6 : B selected (burst   3)
+Time   7 : A selected (burst   3)
+Time   8 : A selected (burst   2)
+Time   9 : B selected (burst   2)
+Time  10 : A selected (burst   1)
+Time  11 : A finished
+Time  11 : B selected (burst   1)
+Time  12 : B finished
+Time  12 : Idle
+Time  13 : Idle
+Time  14 : Idle
+Time  15 : Idle
+Time  16 : Idle
+Time  17 : Idle
+Time  18 : Idle
+Time  19 : Idle
+Finished at time 20
+
+A wait 5 turnaround 11 response 0
+B wait 6 turnaround 10 response 0
+C wait 0 turnaround 2 response 0
