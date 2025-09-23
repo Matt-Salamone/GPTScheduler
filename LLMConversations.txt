@@ -1,2 +1,4 @@
 Main convo: https://g.co/gemini/share/9ece4eceabf6
 Prompt chain generation: https://g.co/gemini/share/1b7209865bb9
+
+GUI convo: https://claude.ai/share/d1ff8d33-d5c2-4661-8c49-31a27edb9b9d
