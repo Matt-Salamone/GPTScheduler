@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Scheduler GUI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
+            min-height: 100vh; color: white;
+        }
+        .header {
+            background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem 2rem;
+        }
+        .header-content {
+            max-width: 1400px; margin: 0 auto; display: flex;
+            align-items: center; justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            padding: 0.5rem; border-radius: 0.5rem; font-weight: bold;
+        }
+        .title {
+            font-size: 1.5rem; font-weight: bold;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: #94a3b8; font-size: 0.875rem; }
+        .container {
+            max-width: 1400px; margin: 0 auto; padding: 2rem;
+            display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .panel-header {
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-label {
+            display: block; margin-bottom: 0.5rem;
+            color: #cbd5e1; font-size: 0.875rem;
+        }
+        .form-input, .form-select {
+            width: 100%; padding: 0.75rem; background: #1e293b;
+            border: 1px solid #475569; border-radius: 0.5rem;
+            color: white; font-size: 0.875rem;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn {
+            padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem;
+            cursor: pointer; font-size: 0.875rem; font-weight: 500;
+            display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-secondary { background: #374151; color: white; border: 1px solid #4b5563; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-run {
+            width: 100%; padding: 1rem; font-size: 1rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .process-card {
+            background: rgba(30, 41, 59, 0.5); border: 1px solid #475569;
+            border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;
+        }
+        .process-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 1rem;
+        }
+        .process-name {
+            background: transparent; border: none; color: white;
+            font-weight: 600; font-size: 1rem; flex: 1;
+        }
+        .process-name:focus { outline: none; border-bottom: 1px solid #3b82f6; }
+        .remove-btn {
+            padding: 0.5rem; background: none; border: none;
+            color: #ef4444; cursor: pointer; border-radius: 0.25rem; font-size: 1rem;
+        }
+        .remove-btn:hover { background: rgba(239, 68, 68, 0.1); }
+        .process-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.25rem; }
+        .input-group input {
+            padding: 0.5rem; background: #0f172a; border: 1px solid #334155;
+            border-radius: 0.25rem; color: white; font-size: 0.875rem;
+        }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #64748b; }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .results-panel { display: none; }
+        .results-panel.active { display: block; }
+        .gantt-chart {
+            background: rgba(30, 41, 59, 0.5); border-radius: 0.5rem;
+            padding: 1rem; margin-bottom: 1.5rem;
+        }
+        .gantt-timeline { display: flex; margin-bottom: 1rem; }
+        .gantt-time {
+            flex: 1; text-align: center; font-size: 0.75rem; color: #94a3b8;
+            border-right: 1px solid #475569; padding: 0.5rem 0;
+        }
+        .gantt-time:last-child { border-right: none; }
+        .gantt-bar {
+            height: 3rem; background: #0f172a; border-radius: 0.25rem;
+            display: flex; position: relative;
+        }
+        .gantt-segment {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.875rem; font-weight: 500; transition: all 0.2s;
+        }
+        .gantt-segment:hover { filter: brightness(1.1); }
+        .metrics-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+        .metrics-table th, .metrics-table td {
+            padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155;
+        }
+        .metrics-table th {
+            background: rgba(30, 41, 59, 0.5); color: #cbd5e1;
+            font-weight: 600; font-size: 0.875rem;
+        }
+        .metrics-table td { color: white; }
+        .status-badge {
+            padding: 0.25rem 0.5rem; border-radius: 0.25rem;
+            font-size: 0.75rem; font-weight: 500;
+        }
+        .status-finished { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-incomplete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .timeline {
+            max-height: 20rem; overflow-y: auto; background: rgba(30, 41, 59, 0.3);
+            border-radius: 0.5rem; padding: 1rem;
+        }
+        .timeline-item {
+            background: rgba(30, 41, 59, 0.3); border-radius: 0.25rem;
+            padding: 0.75rem; margin-bottom: 0.5rem; font-size: 0.875rem;
+        }
+        .timeline-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 0.5rem;
+        }
+        .timeline-time { font-family: 'Courier New', monospace; color: #cbd5e1; }
+        .timeline-running { color: #94a3b8; }
+        .timeline-events { color: #94a3b8; font-size: 0.8125rem; }
+        .loading { display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .spinner {
+            width: 2rem; height: 2rem; border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message {
+            background: rgba(239, 68, 68, 0.1); border: 1px solid #dc2626;
+            color: #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;
+        }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">🖥️</div>
+                <div>
+                    <div class="title">Process Scheduler</div>
+                    <div class="subtitle">Interactive CPU Scheduling Simulator</div>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="exportConfig()">📁 Export</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importConfig(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Import</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="config-panel">
+            <div class="panel">
+                <div class="panel-header"><span>⚙️ Scheduling Algorithm</span></div>
+                <div class="form-group">
+                    <label class="form-label">Algorithm</label>
+                    <select id="algorithm" class="form-select" onchange="updateAlgorithmSettings()">
+                        <option value="fcfs">First Come First Served (FCFS)</option>
+                        <option value="sjf">Shortest Job First (SJF)</option>
+                        <option value="rr">Round Robin (RR)</option>
+                        <option value="stride">Stride Scheduling</option>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div id="quantumGroup" class="form-group" style="display: none;">
+                        <label class="form-label">Quantum</label>
+                        <input type="number" id="quantum" class="form-input" value="2" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Run For (time units)</label>
+                        <input type="number" id="runfor" class="form-input" value="20" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span>📊 Processes</span>
+                    <button class="btn btn-success" style="margin-left: auto;" onclick="addProcess()">➕ Add</button>
+                </div>
+                <div id="processList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <p>No processes added yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="runBtn" class="btn btn-primary btn-run" onclick="runSimulation()">▶️ Run Simulation</button>
+        </div>
+
+        <div class="results-panel" id="resultsPanel">
+            <div id="errorContainer"></div>
+            <div id="loadingContainer" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <span style="margin-left: 1rem;">Running simulation...</span>
+            </div>
+            
+            <div class="panel" id="ganttPanel" style="display: none;">
+                <div class="panel-header"><span>⏰ Gantt Chart</span></div>
+                <div id="ganttChart"></div>
+            </div>
+
+            <div class="panel" id="metricsPanel" style="display: none;">
+                <div class="panel-header"><span>📈 Process Metrics</span></div>
+                <div id="metricsTable"></div>
+            </div>
+
+            <div class="panel" id="timelinePanel" style="display: none;">
+                <div class="panel-header"><span>📋 Execution Timeline</span></div>
+                <div id="timeline"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let processes = [], processCounter = 0, currentSimulation = null;
+
+        function updateAlgorithmSettings() {
+            const algorithm = document.getElementById('algorithm').value;
+            document.getElementById('quantumGroup').style.display = algorithm === 'rr' ? 'block' : 'none';
+            updateProcessTickets(algorithm === 'stride');
+        }
+
+        function addProcess() {
+            processCounter++;
+            const algorithm = document.getElementById('algorithm').value;
+            processes.push({
+                id: Date.now(), name: `P${processCounter}`, arrival_time: 0, burst_time: 1,
+                tickets: algorithm === 'stride' ? 100 : 0
+            });
+            renderProcesses();
+        }
+
+        function removeProcess(id) {
+            processes = processes.filter(p => p.id !== id);
+            renderProcesses();
+        }
+
+        function updateProcess(id, field, value) {
+            const process = processes.find(p => p.id === id);
+            if (process) process[field] = field === 'name' ? value : parseInt(value) || 0;
+        }
+
+        function updateProcessTickets(showTickets) {
+            document.querySelectorAll('.process-card').forEach(card => {
+                const ticketsGroup = card.querySelector('.tickets-group');
+                if (showTickets && !ticketsGroup) {
+                    const processId = parseInt(card.dataset.processId);
+                    const process = processes.find(p => p.id === processId);
+                    card.querySelector('.process-inputs').insertAdjacentHTML('beforeend', `
+                        <div class="input-group tickets-group">
+                            <label>Tickets</label>
+                            <input type="number" value="${process.tickets}" min="1" 
+                                   oninput="updateProcess(${processId}, 'tickets', this.value)">
+                        </div>
+                    `);
+                    card.querySelector('.process-inputs').style.gridTemplateColumns = '1fr 1fr 1fr';
+                } else if (!showTickets && ticketsGroup) {
+                    ticketsGroup.remove();
+                    card.querySelector('.process-inputs').style.gridTemplateColumns = '1fr 1fr';
+                }
+            });
+        }
+
+        function renderProcesses() {
+            const processList = document.getElementById('processList');
+            const algorithm = document.getElementById('algorithm').value;
+            
+            if (processes.length === 0) {
+                processList.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No processes added yet</p></div>';
+                return;
+            }
+
+            processList.innerHTML = processes.map(process => `
+                <div class="process-card" data-process-id="${process.id}">
+                    <div class="process-header">
+                        <input type="text" class="process-name" value="${process.name}" 
+                               oninput="updateProcess(${process.id}, 'name', this.value)">
+                        <button class="remove-btn" onclick="removeProcess(${process.id})">❌</button>
+                    </div>
+                    <div class="process-inputs" style="grid-template-columns: ${algorithm === 'stride' ? '1fr 1fr 1fr' : '1fr 1fr'};">
+                        <div class="input-group">
+                            <label>Arrival Time</label>
+                            <input type="number" value="${process.arrival_time}" min="0" 
+                                   oninput="updateProcess(${process.id}, 'arrival_time', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Burst Time</label>
+                            <input type="number" value="${process.burst_time}" min="1" 
+                                   oninput="updateProcess(${process.id}, 'burst_time', this.value)">
+                        </div>
+                        ${algorithm === 'stride' ? `
+                        <div class="input-group tickets-group">
+                            <label>Tickets</label>
+                            <input type="number" value="${process.tickets}" min="1" 
+                                   oninput="updateProcess(${process.id}, 'tickets', this.value)">
+                        </div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function runSimulation() {
+            if (processes.length === 0) {
+                showError('Please add at least one process before running the simulation.');
+                return;
+            }
+
+            const algorithm = document.getElementById('algorithm').value;
+            const quantum = parseInt(document.getElementById('quantum').value) || 2;
+            const runfor = parseInt(document.getElementById('runfor').value) || 20;
+
+            showLoading(true);
+            clearError();
+
+            try {
+                const inputContent = generateInputFile(algorithm, quantum, runfor);
+                // console.log('Sending simulation request...', inputContent);
+                
+                const response = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input_content: inputContent, algorithm, quantum, runfor })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error (${response.status}): ${errorText}`);
+                }
+
+                const result = await response.json();
+                // console.log('Received result:', result);
+                
+                if (result.error) throw new Error(result.error);
+                if (!result.success) throw new Error('Simulation failed');
+
+                currentSimulation = parseSimulationOutput(result);
+                displayResults();
+
+            } catch (error) {
+                console.error('Simulation error:', error);
+                showError('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function generateInputFile(algorithm, quantum, runfor) {
+            let content = `processcount ${processes.length}\nrunfor ${runfor}\nuse ${algorithm}\n`;
+            if (algorithm === 'rr') content += `quantum ${quantum}\n`;
+            processes.forEach(process => {
+                content += `process name ${process.name} arrival ${process.arrival_time} burst ${process.burst_time}`;
+                if (algorithm === 'stride') content += ` tickets ${process.tickets}`;
+                content += '\n';
+            });
+            return content + 'end\n';
+        }
+
+        function parseSimulationOutput(result) {
+            // console.log('Parsing result:', result);
+            
+            // If backend already returned parsed data, use it
+            if (result.parsed && result.parsed.timeline && result.parsed.timeline.length > 0) {
+                // console.log('Using backend parsed data');
+                return result.parsed;
+            }
+            
+            // console.log('Parsing raw output:', result.output);
+            const lines = result.output.split('\n');
+            const simulation = { 
+                algorithm: '', 
+                simulation_info: '', 
+                timeline: [], 
+                finished_processes: [], 
+                unfinished_processes: [], 
+                raw_output: result.output 
+            };
+
+            // (keep your previous detection of algorithm / simulation info)
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i].trim();
+                if (line.includes('processes') && line.match(/^\d+\s+processes/)) {
+                    simulation.algorithm = line;
+                    break;
+                }
+                i++;
+            }
+            while (i < lines.length) {
+                const line = lines[i].trim();
+                if (line.startsWith('Using ')) {
+                    simulation.simulation_info = line;
+                    break;
+                }
+                i++;
+            }
+
+            // ----- Collect time-ordered events and finished/process lines -----
+            const timeEvents = []; // preserve order
+            for (let k = 0; k < lines.length; k++) {
+                const raw = lines[k].trim();
+                const timeMatch = raw.match(/^Time\s+(\d+)\s*:\s*(.*)/);
+                if (timeMatch) {
+                    timeEvents.push({ time: parseInt(timeMatch[1], 10), text: timeMatch[2].trim(), rawLineIndex: k });
+                }
+
+                // keep the finished/process metrics parsing (unchanged semantics)
+                if (raw.includes('wait') && raw.includes('turnaround') && raw.includes('response')) {
+                    const processMatch = raw.match(/^(\w+)\s+wait\s+(\d+)\s+turnaround\s+(\d+)\s+response\s+(\d+)/);
+                    if (processMatch) {
+                        simulation.finished_processes.push({
+                            name: processMatch[1],
+                            wait_time: parseInt(processMatch[2], 10),
+                            turnaround_time: parseInt(processMatch[3], 10),
+                            response_time: parseInt(processMatch[4], 10)
+                        });
+                    }
+                } else if (raw.includes('did not finish')) {
+                    const processName = raw.split(' ')[0];
+                    simulation.unfinished_processes.push({ name: processName });
+                }
+            }
+
+            // If no Time lines were logged, return what we have
+            if (timeEvents.length === 0) return simulation;
+
+            // Group events by time preserving order
+            const eventsByTime = {};
+            timeEvents.forEach(ev => {
+                if (!eventsByTime[ev.time]) eventsByTime[ev.time] = [];
+                eventsByTime[ev.time].push(ev.text);
+            });
+
+            const times = Object.keys(eventsByTime).map(t => parseInt(t, 10)).sort((a,b) => a - b);
+
+            // Use the runfor value from UI to bound how far we expand the final interval (fallback to last time + 1)
+            const uiRunfor = (() => {
+                const v = parseInt(document.getElementById('runfor')?.value, 10);
+                if (!isNaN(v) && v > 0) return v;
+                return times[times.length - 1] + 1;
+            })();
+
+            // Build timeline entries: for each time point, process events in input order,
+            // set the 'currentRunning' after processing that time's events, then fill
+            // the interval [time, next_time) with that running value.
+            let currentRunning = 'IDLE';
+
+            // If simulation starts after time 0, fill idle from 0..firstTime-1
+            const firstTime = times[0];
+            for (let t = 0; t < firstTime; t++) {
+                simulation.timeline.push({ time: t, running: 'IDLE', ready_queue: [], events: [] });
+            }
+
+            for (let idx = 0; idx < times.length; idx++) {
+                const t = times[idx];
+                const events = eventsByTime[t] || [];
+
+                // Process events in the order they were printed so we respect "finished" then "selected" ordering etc.
+                for (const evText of events) {
+                    // selected lines like: "P2 selected (burst   3)"
+                    if (evText.includes('selected')) {
+                        const pm = evText.match(/^(\w+)\s+selected/);
+                        if (pm) currentRunning = pm[1];
+                    }
+                    // finished lines like: "P1 finished"
+                    else if (evText.includes('finished')) {
+                        const pm = evText.match(/^(\w+)\s+finished/);
+                        if (pm && currentRunning === pm[1]) {
+                            // process finished at time t, temporarily mark IDLE until a "selected" (if any) arrives at same time
+                            currentRunning = 'IDLE';
+                        }
+                    }
+                    // arrivals / other events do not change running directly
+                }
+
+                // Determine how far this currentRunning value holds: up to the next logged time, or uiRunfor
+                const nextTime = (idx + 1 < times.length) ? times[idx + 1] : uiRunfor;
+                const endTime = Math.min(nextTime, uiRunfor);
+
+                // Fill every integer tick in [t, endTime) with the currentRunning state
+                for (let tick = t; tick < endTime; tick++) {
+                    simulation.timeline.push({
+                        time: tick,
+                        running: currentRunning,
+                        ready_queue: [],
+                        events: tick === t ? events.slice() : [] // attach the events only at the start tick
+                    });
+                }
+            }
+
+            return simulation;
+        }
+
+
+        function showLoading(show) {
+            document.getElementById('loadingContainer').style.display = show ? 'flex' : 'none';
+            const runBtn = document.getElementById('runBtn');
+            runBtn.disabled = show;
+            runBtn.innerHTML = show ? '⏳ Running...' : '▶️ Run Simulation';
+        }
+
+        function showError(message) {
+            document.getElementById('errorContainer').innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        function clearError() {
+            document.getElementById('errorContainer').innerHTML = '';
+        }
+
+        function displayResults() {
+            if (!currentSimulation) return;
+            document.getElementById('resultsPanel').classList.add('active');
+            document.getElementById('ganttPanel').style.display = 'block';
+            document.getElementById('metricsPanel').style.display = 'block';
+            document.getElementById('timelinePanel').style.display = 'block';
+            renderGanttChart(); renderMetricsTable(); renderTimeline();
+        }
+
+        // This is the corrected version of the function you provided.
+        function renderGanttChart() {
+            if (!currentSimulation || !currentSimulation.timeline) return;
+            const ganttChart = document.getElementById('ganttChart');
+            const runfor = parseInt(document.getElementById('runfor').value) || 20;
+
+            // Create time scale
+            const timeScale = document.createElement('div');
+            timeScale.className = 'gantt-timeline';
+            for (let i = 0; i <= runfor; i++) {
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'gantt-time';
+                timeDiv.textContent = i;
+                timeDiv.style.width = `${100 / runfor}%`; // Adjust width for even spacing
+                timeScale.appendChild(timeDiv);
+            }
+
+            // Create Gantt bar container
+            const ganttBar = document.createElement('div');
+            ganttBar.className = 'gantt-bar';
+            ganttBar.style.position = 'relative';
+
+            // Build segments by iterating and creating a new segment for each transition
+            const segments = [];
+            if (currentSimulation.timeline.length > 0) {
+                let currentSegment = {
+                    process: currentSimulation.timeline[0].running || 'IDLE',
+                    start: currentSimulation.timeline[0].time
+                };
+
+                for (let i = 1; i < currentSimulation.timeline.length; i++) {
+                    const entry = currentSimulation.timeline[i];
+                    const previousEntry = currentSimulation.timeline[i - 1];
+                    const currentProcess = entry.running || 'IDLE';
+                    const previousProcess = previousEntry.running || 'IDLE';
+
+                    // If the process running is different from the previous tick, finalize the old segment
+                    if (currentProcess !== previousProcess) {
+                        currentSegment.end = previousEntry.time + 1;
+                        currentSegment.duration = currentSegment.end - currentSegment.start;
+                        segments.push(currentSegment);
+
+                        // Start a new segment
+                        currentSegment = {
+                            process: currentProcess,
+                            start: entry.time
+                        };
+                    }
+                }
+                // Finalize the last segment
+                currentSegment.end = currentSimulation.timeline[currentSimulation.timeline.length - 1].time + 1;
+                currentSegment.duration = currentSegment.end - currentSegment.start;
+                segments.push(currentSegment);
+            }
+
+            // Create visual segments with absolute positioning
+            segments.forEach(segment => {
+                if (segment.duration > 0) {
+                    const segmentDiv = document.createElement('div');
+                    segmentDiv.className = 'gantt-segment';
+                    segmentDiv.style.backgroundColor = segment.process === 'IDLE' ? '#334155' : getProcessColor(segment.process);
+                    segmentDiv.style.position = 'absolute';
+                    segmentDiv.style.left = `${(segment.start / runfor) * 100}%`;
+                    segmentDiv.style.width = `${(segment.duration / runfor) * 100}%`;
+                    segmentDiv.style.height = '100%';
+                    segmentDiv.style.display = 'flex';
+                    segmentDiv.style.alignItems = 'center';
+                    segmentDiv.style.justifyContent = 'center';
+                    segmentDiv.style.whiteSpace = 'nowrap';
+                    segmentDiv.style.overflow = 'hidden';
+
+                    const label = document.createElement('span');
+                    label.textContent = segment.process;
+                    label.style.padding = '0 0.25rem';
+                    label.style.fontSize = '0.875rem';
+                    label.style.overflow = 'hidden';
+                    label.style.textOverflow = 'ellipsis';
+                    label.style.whiteSpace = 'nowrap';
+
+                    segmentDiv.appendChild(label);
+                    segmentDiv.title = `${segment.process}: Time ${segment.start}-${segment.end} (${segment.duration} units)`;
+                    ganttBar.appendChild(segmentDiv);
+                }
+            });
+
+            ganttChart.innerHTML = '';
+            ganttChart.appendChild(ganttBar);
+        }
+
+
+
+        function renderMetricsTable() {
+            if (!currentSimulation) return;
+            let tableHtml = `<table class="metrics-table"><thead><tr><th>Process</th><th>Wait Time</th><th>Turnaround Time</th><th>Response Time</th><th>Status</th></tr></thead><tbody>`;
+            
+            currentSimulation.finished_processes.forEach(process => {
+                tableHtml += `<tr><td style="font-weight: 600;">${process.name}</td><td style="color: #60a5fa;">${process.wait_time}</td><td style="color: #10b981;">${process.turnaround_time}</td><td style="color: #a78bfa;">${process.response_time}</td><td><span class="status-badge status-finished">Finished</span></td></tr>`;
+            });
+            
+            currentSimulation.unfinished_processes.forEach(process => {
+                tableHtml += `<tr><td style="font-weight: 600;">${process.name}</td><td style="color: #64748b;">-</td><td style="color: #64748b;">-</td><td style="color: #64748b;">-</td><td><span class="status-badge status-incomplete">Incomplete</span></td></tr>`;
+            });
+            
+            document.getElementById('metricsTable').innerHTML = tableHtml + '</tbody></table>';
+        }
+
+        function renderTimeline() {
+            if (!currentSimulation || !currentSimulation.timeline) return;
+            const timelineHtml = currentSimulation.timeline.map(timeSlice => {
+                const eventsText = timeSlice.events.length > 0 ? `Events: ${timeSlice.events.join(', ')}` : 'No events';
+                return `<div class="timeline-item"><div class="timeline-header"><span class="timeline-time">Time ${timeSlice.time}:</span><span class="timeline-running">Running: <strong>${timeSlice.running}</strong></span></div><div class="timeline-events">${eventsText}</div></div>`;
+            }).join('');
+            document.getElementById('timeline').innerHTML = timelineHtml;
+        }
+
+        const getProcessColor = (processName) => {
+            const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+            return colors[processName.charCodeAt(processName.length - 1) % colors.length];
+        };
+
+        function exportConfig() {
+            const config = {
+                algorithm: document.getElementById('algorithm').value,
+                quantum: parseInt(document.getElementById('quantum').value) || 2,
+                runfor: parseInt(document.getElementById('runfor').value) || 20,
+                processes: processes
+            };
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'scheduler_config.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    document.getElementById('algorithm').value = config.algorithm || 'fcfs';
+                    document.getElementById('quantum').value = config.quantum || 2;
+                    document.getElementById('runfor').value = config.runfor || 20;
+                    processes = config.processes || [];
+                    processCounter = Math.max(...processes.map(p => parseInt(p.name.replace('P', '')) || 0), 0);
+                    updateAlgorithmSettings(); renderProcesses();
+                } catch (error) { showError('Error importing configuration: ' + error.message); }
+            };
+            reader.readAsText(file);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAlgorithmSettings(); renderProcesses();
+        });
+    </script>
+</body>
+</html>
