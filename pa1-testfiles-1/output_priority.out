@@ -1,24 +1,57 @@
---- Running PRIORITY Simulation ---
+5 processes
+Using preemptive Priority Scheduling
 
---- Simulation Results ---
+Time   0 : P1 arrived
+Time   0 : P1 selected (burst   8)
+Time   1 : Idle
+Time   2 : P2 arrived
+Time   3 : Idle
+Time   4 : P3 arrived
+Time   4 : P3 selected (burst   6)
+Time   5 : P4 arrived
+Time   6 : Idle
+Time   7 : Idle
+Time   8 : Idle
+Time   9 : Idle
+Time  10 : P5 arrived
+Time  10 : P3 finished
+Time  10 : P4 selected (burst   3)
+Time  11 : Idle
+Time  12 : Idle
+Time  13 : P4 finished
+Time  13 : P1 selected (burst   4)
+Time  14 : Idle
+Time  15 : Idle
+Time  16 : Idle
+Time  17 : P1 finished
+Time  17 : P5 selected (burst   5)
+Time  18 : Idle
+Time  19 : Idle
+Time  20 : Idle
+Time  21 : Idle
+Time  22 : P5 finished
+Time  22 : P2 selected (burst   4)
+Time  23 : Idle
+Time  24 : Idle
+Time  25 : Idle
+Time  26 : P2 finished
+Time  27 : Idle
+Time  28 : Idle
+Time  29 : Idle
+Time  30 : Idle
+Time  31 : Idle
+Time  32 : Idle
+Time  33 : Idle
+Time  34 : Idle
+Time  35 : Idle
+Time  36 : Idle
+Time  37 : Idle
+Time  38 : Idle
+Time  39 : Idle
+Finished at time 40
 
-Gantt Chart:
-|  P1  |  P3  |  P4  |  P5  |  P2  |
-0      8      14     17     22     26     
-
-Process Details:
---------------------------------------------------------------------------------
-Name       Arrival    Burst      Priority   Finish     Turnaround      Wait Time
---------------------------------------------------------------------------------
-P1         0          8          3          8          8               0         
-P2         2          4          4          26         24              20        
-P3         4          6          1          14         10              4         
-P4         5          3          1          17         12              9         
-P5         10         5          3          22         12              7         
---------------------------------------------------------------------------------
-
-Performance Metrics:
-  Average Waiting Time:      8.00
-  Average Turnaround Time:   13.20
-  CPU Utilization:           100.00%
------------------------------------
+P1 wait 9 turnaround 17 response 0
+P2 wait 20 turnaround 24 response 20
+P3 wait 0 turnaround 6 response 0
+P4 wait 5 turnaround 8 response 5
+P5 wait 7 turnaround 12 response 7
