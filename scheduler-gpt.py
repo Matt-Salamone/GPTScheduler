@@ -6,7 +6,17 @@
 
 import sys
 import os
+
 from collections import deque
+
+VERBOSE_LOG = os.getenv("SCHEDULER_VERBOSE_LOG", "0").lower() in {"1", "true", "yes", "on"}
+
+def render_queue_snapshot(queue):
+    names = [proc.name for proc in queue]
+    return '[' + ', '.join(names) + ']' if names else '[]'
+
+def log_event(time, message, out_file):
+    out_file.write(f"Time {time:3} : {message}\n")
 
 # --------------------------------------------------------------------------
 # --- Data Structures and Utilities
@@ -185,7 +195,7 @@ def run_fcfs(config, incoming_procs, out_file):
 
         if not currently_running and ready_queue:
             currently_running = ready_queue.popleft()
-            select_process(time, currently_running, out_file)
+            select_process(time, currently_running, out_file, ready_queue)
 
         log_tick(time, currently_running, out_file)
         time += 1
@@ -214,7 +224,7 @@ def run_sjf(config, incoming_procs, out_file):
                 if currently_running:
                     ready_queue.append(currently_running)
                 currently_running = ready_queue.pop(0)
-                select_process(time, currently_running, out_file)
+                select_process(time, currently_running, out_file, ready_queue)
 
         log_tick(time, currently_running, out_file)
         time += 1
@@ -242,9 +252,9 @@ def run_rr(config, incoming_procs, out_file):
         if not currently_running and ready_queue:
             currently_running = ready_queue.popleft()
             time_slice_remaining = quantum  # Start new time slice
-            select_process(time, currently_running, out_file)
+            select_process(time, currently_running, out_file, ready_queue)
 
-        log_tick(time, currently_running, out_file, decrement_slice=True)
+        log_tick(time, currently_running, out_file, time_slice_remaining)
         if currently_running:
              time_slice_remaining -= 1
         time += 1
@@ -270,7 +280,7 @@ def run_stride(config, incoming_procs, out_file):
             # Select process with the lowest pass value, tie-breaking with arrival time.
             ready_queue.sort(key=lambda p: (p.pass_value, p.arrival_time))
             currently_running = ready_queue.pop(0)
-            select_process(time, currently_running, out_file)
+            select_process(time, currently_running, out_file, ready_queue)
 
             # Update its pass value for the next cycle.
             currently_running.pass_value += currently_running.stride
@@ -287,25 +297,40 @@ def check_for_arrivals(time, incoming_procs, ready_queue, out_file):
     while incoming_procs and incoming_procs[0].arrival_time == time:
         process = incoming_procs.pop(0)
         ready_queue.append(process)
-        out_file.write(f"Time {time:3} : {process.name} arrived\n")
+        message = f"{process.name} arrived"
+        if VERBOSE_LOG:
+            message += f" | Ready: {render_queue_snapshot(ready_queue)}"
+        log_event(time, message, out_file)
 
 def handle_completion(time, process, out_file):
     """Sets finish time and logs the completion event."""
     process.finish_time = time
-    out_file.write(f"Time {time:3} : {process.name} finished\n")
+    message = f"{process.name} finished"
+    if VERBOSE_LOG:
+        message += f" | Turnaround {time - process.arrival_time}"
+    log_event(time, message, out_file)
 
-def select_process(time, process, out_file):
+def select_process(time, process, out_file, ready_snapshot=None):
     """Sets response time (if not set) and logs the selection event."""
     if process.response_time == -1:
         process.response_time = time - process.arrival_time
-    out_file.write(f"Time {time:3} : {process.name} selected (burst {process.remaining_burst:3})\n")
+    message = f"{process.name} selected (burst {process.remaining_burst:3})"
+    if VERBOSE_LOG and ready_snapshot is not None:
+        message += f" | Ready: {render_queue_snapshot(ready_snapshot)}"
+    log_event(time, message, out_file)
 
-def log_tick(time, running_process, out_file, decrement_slice=False):
+def log_tick(time, running_process, out_file, quantum_remaining=None):
     """Decrements burst time for the running process or logs Idle."""
     if running_process:
         running_process.remaining_burst -= 1
+        if VERBOSE_LOG:
+            message = f"Running {running_process.name} (remaining {running_process.remaining_burst})"
+            if quantum_remaining is not None:
+                after_tick = quantum_remaining - 1 if quantum_remaining > 0 else 0
+                message += f" | Quantum {quantum_remaining}->{after_tick}"
+            log_event(time, message, out_file)
     else:
-        out_file.write(f"Time {time:3} : Idle\n")
+        log_event(time, "Idle", out_file)
 
 def write_final_metrics(out_file, processes, simulation_time_limit):
     """Calculates and writes the final performance metrics for all processes."""
@@ -343,7 +368,9 @@ def main():
     # in the current working directory, which is what the test bench expects.
     base_name_with_ext = os.path.basename(input_filename)
     base_name = os.path.splitext(base_name_with_ext)[0]
-    output_filename = f"{base_name}.out"
+    input_dir = os.path.dirname(input_filename)
+    output_dir = input_dir if input_dir else '.'
+    output_filename = os.path.join(output_dir, f"{base_name}.out")
 
     try:
         with open(output_filename, 'w') as out_file:
