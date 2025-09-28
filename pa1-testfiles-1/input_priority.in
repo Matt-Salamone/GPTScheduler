@@ -1,0 +1,21 @@
+runfor 50
+use priority
+# Test Case for Priority Scheduling
+# - P3 and P4 have the highest priority (1). P3 should be chosen first because it arrives earlier.
+# - P3 should be chosen over P2, even though P2 arrived earlier, because P3 has a higher priority.
+
+# P1: Arrives first, medium priority
+process name P1 arrival 0 burst 8 priority 3
+
+# P2: Arrives, but P1 is running. Low priority.
+process name P2 arrival 2 burst 4 priority 4
+
+# P3: Arrives while P1 is running. HIGHEST priority. Should run right after P1 finishes.
+process name P3 arrival 4 burst 6 priority 1
+
+# P4: Arrives while P1 is running. Also HIGHEST priority, but arrived after P3.
+# This will test the FCFS tie-breaker for equal priorities.
+process name P4 arrival 5 burst 3 priority 1
+
+# P5: Arrives later. Medium priority. Should run after the priority 1 jobs.
+process name P5 arrival 10 burst 5 priority 3
