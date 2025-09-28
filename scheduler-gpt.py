@@ -368,9 +368,7 @@ def main():
     # in the current working directory, which is what the test bench expects.
     base_name_with_ext = os.path.basename(input_filename)
     base_name = os.path.splitext(base_name_with_ext)[0]
-    input_dir = os.path.dirname(input_filename)
-    output_dir = input_dir if input_dir else '.'
-    output_filename = os.path.join(output_dir, f"{base_name}.out")
+    output_filename = f"{base_name}.out"
 
     try:
         with open(output_filename, 'w') as out_file:
