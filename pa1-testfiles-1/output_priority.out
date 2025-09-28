@@ -1,0 +1,24 @@
+--- Running PRIORITY Simulation ---
+
+--- Simulation Results ---
+
+Gantt Chart:
+|  P1  |  P3  |  P4  |  P5  |  P2  |
+0      8      14     17     22     26     
+
+Process Details:
+--------------------------------------------------------------------------------
+Name       Arrival    Burst      Priority   Finish     Turnaround      Wait Time
+--------------------------------------------------------------------------------
+P1         0          8          3          8          8               0         
+P2         2          4          4          26         24              20        
+P3         4          6          1          14         10              4         
+P4         5          3          1          17         12              9         
+P5         10         5          3          22         12              7         
+--------------------------------------------------------------------------------
+
+Performance Metrics:
+  Average Waiting Time:      8.00
+  Average Turnaround Time:   13.20
+  CPU Utilization:           100.00%
+-----------------------------------
