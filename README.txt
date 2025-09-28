@@ -1,3 +1,7 @@
+To run the test bench...
+run "python test_bench.py [PATH_TO_TESTFILES]"
+e.g., "python test_bench.py ./pa1-testfiles-1"
+
 To run the GUI...
 
 pip install -r Flask
