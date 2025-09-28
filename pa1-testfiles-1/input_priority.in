@@ -1,4 +1,3 @@
-
 processcount 5      # The scheduler will read 5 processes.
 runfor 40           # The simulation will run for 40 time units.
 use priority        # Use the preemptive priority scheduling algorithm.
