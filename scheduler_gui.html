@@ -195,6 +195,7 @@
                         <option value="fcfs">First Come First Served (FCFS)</option>
                         <option value="sjf">Shortest Job First (SJF)</option>
                         <option value="rr">Round Robin (RR)</option>
+                        <option value="priority">Priority Scheduling</option>
                         <option value="stride">Stride Scheduling</option>
                     </select>
                 </div>
@@ -256,14 +257,18 @@
         function updateAlgorithmSettings() {
             const algorithm = document.getElementById('algorithm').value;
             document.getElementById('quantumGroup').style.display = algorithm === 'rr' ? 'block' : 'none';
-            updateProcessTickets(algorithm === 'stride');
+            updateProcessFields(algorithm);
         }
 
         function addProcess() {
             processCounter++;
             const algorithm = document.getElementById('algorithm').value;
             processes.push({
-                id: Date.now(), name: `P${processCounter}`, arrival_time: 0, burst_time: 1,
+                id: Date.now(), 
+                name: `P${processCounter}`, 
+                arrival_time: 0, 
+                burst_time: 1,
+                priority: algorithm === 'priority' ? 1 : 0,
                 tickets: algorithm === 'stride' ? 100 : 0
             });
             renderProcesses();
@@ -279,30 +284,56 @@
             if (process) process[field] = field === 'name' ? value : parseInt(value) || 0;
         }
 
-        function updateProcessTickets(showTickets) {
+        function updateProcessFields(algorithm) {
+            const showPriority = algorithm === 'priority';
+            const showTickets = algorithm === 'stride';
+            const columnCount = 2 + (showPriority ? 1 : 0) + (showTickets ? 1 : 0);
+            
             document.querySelectorAll('.process-card').forEach(card => {
+                const processId = parseInt(card.dataset.processId);
+                const process = processes.find(p => p.id === processId);
+                const inputsContainer = card.querySelector('.process-inputs');
+                
+                // Remove old priority/tickets fields
+                const priorityGroup = card.querySelector('.priority-group');
                 const ticketsGroup = card.querySelector('.tickets-group');
+                if (priorityGroup) priorityGroup.remove();
+                if (ticketsGroup) ticketsGroup.remove();
+                
+                // Add priority field if needed
+                if (showPriority && !priorityGroup) {
+                    if (!process.priority) process.priority = 1;
+                    inputsContainer.insertAdjacentHTML('beforeend', `
+                        <div class="input-group priority-group">
+                            <label>Priority</label>
+                            <input type="number" value="${process.priority}" min="1" 
+                                   oninput="updateProcess(${processId}, 'priority', this.value)">
+                        </div>
+                    `);
+                }
+                
+                // Add tickets field if needed
                 if (showTickets && !ticketsGroup) {
-                    const processId = parseInt(card.dataset.processId);
-                    const process = processes.find(p => p.id === processId);
-                    card.querySelector('.process-inputs').insertAdjacentHTML('beforeend', `
+                    if (!process.tickets) process.tickets = 100;
+                    inputsContainer.insertAdjacentHTML('beforeend', `
                         <div class="input-group tickets-group">
                             <label>Tickets</label>
                             <input type="number" value="${process.tickets}" min="1" 
                                    oninput="updateProcess(${processId}, 'tickets', this.value)">
                         </div>
                     `);
-                    card.querySelector('.process-inputs').style.gridTemplateColumns = '1fr 1fr 1fr';
-                } else if (!showTickets && ticketsGroup) {
-                    ticketsGroup.remove();
-                    card.querySelector('.process-inputs').style.gridTemplateColumns = '1fr 1fr';
                 }
+                
+                inputsContainer.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
             });
         }
 
         function renderProcesses() {
             const processList = document.getElementById('processList');
             const algorithm = document.getElementById('algorithm').value;
+            const showPriority = algorithm === 'priority';
+            const showTickets = algorithm === 'stride';
+            const columnCount = 2 + (showPriority ? 1 : 0) + (showTickets ? 1 : 0);
             
             if (processes.length === 0) {
                 processList.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No processes added yet</p></div>';
@@ -316,7 +347,7 @@
                                oninput="updateProcess(${process.id}, 'name', this.value)">
                         <button class="remove-btn" onclick="removeProcess(${process.id})">❌</button>
                     </div>
-                    <div class="process-inputs" style="grid-template-columns: ${algorithm === 'stride' ? '1fr 1fr 1fr' : '1fr 1fr'};">
+                    <div class="process-inputs" style="grid-template-columns: repeat(${columnCount}, 1fr);">
                         <div class="input-group">
                             <label>Arrival Time</label>
                             <input type="number" value="${process.arrival_time}" min="0" 
@@ -327,10 +358,16 @@
                             <input type="number" value="${process.burst_time}" min="1" 
                                    oninput="updateProcess(${process.id}, 'burst_time', this.value)">
                         </div>
-                        ${algorithm === 'stride' ? `
+                        ${showPriority ? `
+                        <div class="input-group priority-group">
+                            <label>Priority</label>
+                            <input type="number" value="${process.priority || 1}" min="1" 
+                                   oninput="updateProcess(${process.id}, 'priority', this.value)">
+                        </div>` : ''}
+                        ${showTickets ? `
                         <div class="input-group tickets-group">
                             <label>Tickets</label>
-                            <input type="number" value="${process.tickets}" min="1" 
+                            <input type="number" value="${process.tickets || 100}" min="1" 
                                    oninput="updateProcess(${process.id}, 'tickets', this.value)">
                         </div>` : ''}
                     </div>
@@ -353,7 +390,6 @@
 
             try {
                 const inputContent = generateInputFile(algorithm, quantum, runfor);
-                // console.log('Sending simulation request...', inputContent);
                 
                 const response = await fetch('/api/simulate', {
                     method: 'POST',
@@ -367,7 +403,6 @@
                 }
 
                 const result = await response.json();
-                // console.log('Received result:', result);
                 
                 if (result.error) throw new Error(result.error);
                 if (!result.success) throw new Error('Simulation failed');
@@ -389,21 +424,17 @@
             processes.forEach(process => {
                 content += `process name ${process.name} arrival ${process.arrival_time} burst ${process.burst_time}`;
                 if (algorithm === 'stride') content += ` tickets ${process.tickets}`;
+                if (algorithm === 'priority') content += ` priority ${process.priority}`;
                 content += '\n';
             });
             return content + 'end\n';
         }
 
         function parseSimulationOutput(result) {
-            // console.log('Parsing result:', result);
-            
-            // If backend already returned parsed data, use it
             if (result.parsed && result.parsed.timeline && result.parsed.timeline.length > 0) {
-                // console.log('Using backend parsed data');
                 return result.parsed;
             }
             
-            // console.log('Parsing raw output:', result.output);
             const lines = result.output.split('\n');
             const simulation = { 
                 algorithm: '', 
@@ -414,7 +445,6 @@
                 raw_output: result.output 
             };
 
-            // (keep your previous detection of algorithm / simulation info)
             let i = 0;
             while (i < lines.length) {
                 const line = lines[i].trim();
@@ -433,8 +463,7 @@
                 i++;
             }
 
-            // ----- Collect time-ordered events and finished/process lines -----
-            const timeEvents = []; // preserve order
+            const timeEvents = [];
             for (let k = 0; k < lines.length; k++) {
                 const raw = lines[k].trim();
                 const timeMatch = raw.match(/^Time\s+(\d+)\s*:\s*(.*)/);
@@ -442,7 +471,6 @@
                     timeEvents.push({ time: parseInt(timeMatch[1], 10), text: timeMatch[2].trim(), rawLineIndex: k });
                 }
 
-                // keep the finished/process metrics parsing (unchanged semantics)
                 if (raw.includes('wait') && raw.includes('turnaround') && raw.includes('response')) {
                     const processMatch = raw.match(/^(\w+)\s+wait\s+(\d+)\s+turnaround\s+(\d+)\s+response\s+(\d+)/);
                     if (processMatch) {
@@ -459,10 +487,8 @@
                 }
             }
 
-            // If no Time lines were logged, return what we have
             if (timeEvents.length === 0) return simulation;
 
-            // Group events by time preserving order
             const eventsByTime = {};
             timeEvents.forEach(ev => {
                 if (!eventsByTime[ev.time]) eventsByTime[ev.time] = [];
@@ -471,19 +497,14 @@
 
             const times = Object.keys(eventsByTime).map(t => parseInt(t, 10)).sort((a,b) => a - b);
 
-            // Use the runfor value from UI to bound how far we expand the final interval (fallback to last time + 1)
             const uiRunfor = (() => {
                 const v = parseInt(document.getElementById('runfor')?.value, 10);
                 if (!isNaN(v) && v > 0) return v;
                 return times[times.length - 1] + 1;
             })();
 
-            // Build timeline entries: for each time point, process events in input order,
-            // set the 'currentRunning' after processing that time's events, then fill
-            // the interval [time, next_time) with that running value.
             let currentRunning = 'IDLE';
 
-            // If simulation starts after time 0, fill idle from 0..firstTime-1
             const firstTime = times[0];
             for (let t = 0; t < firstTime; t++) {
                 simulation.timeline.push({ time: t, running: 'IDLE', ready_queue: [], events: [] });
@@ -493,42 +514,34 @@
                 const t = times[idx];
                 const events = eventsByTime[t] || [];
 
-                // Process events in the order they were printed so we respect "finished" then "selected" ordering etc.
                 for (const evText of events) {
-                    // selected lines like: "P2 selected (burst   3)"
                     if (evText.includes('selected')) {
                         const pm = evText.match(/^(\w+)\s+selected/);
                         if (pm) currentRunning = pm[1];
                     }
-                    // finished lines like: "P1 finished"
                     else if (evText.includes('finished')) {
                         const pm = evText.match(/^(\w+)\s+finished/);
                         if (pm && currentRunning === pm[1]) {
-                            // process finished at time t, temporarily mark IDLE until a "selected" (if any) arrives at same time
                             currentRunning = 'IDLE';
                         }
                     }
-                    // arrivals / other events do not change running directly
                 }
 
-                // Determine how far this currentRunning value holds: up to the next logged time, or uiRunfor
                 const nextTime = (idx + 1 < times.length) ? times[idx + 1] : uiRunfor;
                 const endTime = Math.min(nextTime, uiRunfor);
 
-                // Fill every integer tick in [t, endTime) with the currentRunning state
                 for (let tick = t; tick < endTime; tick++) {
                     simulation.timeline.push({
                         time: tick,
                         running: currentRunning,
                         ready_queue: [],
-                        events: tick === t ? events.slice() : [] // attach the events only at the start tick
+                        events: tick === t ? events.slice() : []
                     });
                 }
             }
 
             return simulation;
         }
-
 
         function showLoading(show) {
             document.getElementById('loadingContainer').style.display = show ? 'flex' : 'none';
@@ -554,29 +567,25 @@
             renderGanttChart(); renderMetricsTable(); renderTimeline();
         }
 
-        // This is the corrected version of the function you provided.
         function renderGanttChart() {
             if (!currentSimulation || !currentSimulation.timeline) return;
             const ganttChart = document.getElementById('ganttChart');
             const runfor = parseInt(document.getElementById('runfor').value) || 20;
 
-            // Create time scale
             const timeScale = document.createElement('div');
             timeScale.className = 'gantt-timeline';
             for (let i = 0; i <= runfor; i++) {
                 const timeDiv = document.createElement('div');
                 timeDiv.className = 'gantt-time';
                 timeDiv.textContent = i;
-                timeDiv.style.width = `${100 / runfor}%`; // Adjust width for even spacing
+                timeDiv.style.width = `${100 / runfor}%`;
                 timeScale.appendChild(timeDiv);
             }
 
-            // Create Gantt bar container
             const ganttBar = document.createElement('div');
             ganttBar.className = 'gantt-bar';
             ganttBar.style.position = 'relative';
 
-            // Build segments by iterating and creating a new segment for each transition
             const segments = [];
             if (currentSimulation.timeline.length > 0) {
                 let currentSegment = {
@@ -590,26 +599,22 @@
                     const currentProcess = entry.running || 'IDLE';
                     const previousProcess = previousEntry.running || 'IDLE';
 
-                    // If the process running is different from the previous tick, finalize the old segment
                     if (currentProcess !== previousProcess) {
                         currentSegment.end = previousEntry.time + 1;
                         currentSegment.duration = currentSegment.end - currentSegment.start;
                         segments.push(currentSegment);
 
-                        // Start a new segment
                         currentSegment = {
                             process: currentProcess,
                             start: entry.time
                         };
                     }
                 }
-                // Finalize the last segment
                 currentSegment.end = currentSimulation.timeline[currentSimulation.timeline.length - 1].time + 1;
                 currentSegment.duration = currentSegment.end - currentSegment.start;
                 segments.push(currentSegment);
             }
 
-            // Create visual segments with absolute positioning
             segments.forEach(segment => {
                 if (segment.duration > 0) {
                     const segmentDiv = document.createElement('div');
@@ -642,8 +647,6 @@
             ganttChart.innerHTML = '';
             ganttChart.appendChild(ganttBar);
         }
-
-
 
         function renderMetricsTable() {
             if (!currentSimulation) return;
