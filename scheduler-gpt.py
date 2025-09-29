@@ -3,6 +3,9 @@
 #
 # Team Members:
 # Matthew Salamone, Lucas Sutton, Justin Moreira, Vaishal Devasenapathy
+#
+# Link to our GitHub Repo:
+# https://github.com/Matt-Salamone/GPTScheduler
 
 import sys
 import os
