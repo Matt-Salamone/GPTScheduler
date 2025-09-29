@@ -3,52 +3,25 @@ Using preemptive Priority Scheduling
 
 Time   0 : P1 arrived
 Time   0 : P1 selected (burst   8)
-Time   1 : Idle
 Time   2 : P2 arrived
-Time   3 : Idle
 Time   4 : P3 arrived
 Time   4 : P3 selected (burst   6)
 Time   5 : P4 arrived
-Time   6 : Idle
-Time   7 : Idle
-Time   8 : Idle
-Time   9 : Idle
-Time  10 : P5 arrived
 Time  10 : P3 finished
+Time  10 : P5 arrived
 Time  10 : P4 selected (burst   3)
-Time  11 : Idle
-Time  12 : Idle
 Time  13 : P4 finished
 Time  13 : P1 selected (burst   4)
-Time  14 : Idle
-Time  15 : Idle
-Time  16 : Idle
 Time  17 : P1 finished
 Time  17 : P5 selected (burst   5)
-Time  18 : Idle
-Time  19 : Idle
-Time  20 : Idle
-Time  21 : Idle
 Time  22 : P5 finished
 Time  22 : P2 selected (burst   4)
-Time  23 : Idle
-Time  24 : Idle
-Time  25 : Idle
 Time  26 : P2 finished
+Time  26 : Idle
 Time  27 : Idle
 Time  28 : Idle
 Time  29 : Idle
-Time  30 : Idle
-Time  31 : Idle
-Time  32 : Idle
-Time  33 : Idle
-Time  34 : Idle
-Time  35 : Idle
-Time  36 : Idle
-Time  37 : Idle
-Time  38 : Idle
-Time  39 : Idle
-Finished at time 40
+Finished at time 30
 
 P1 wait 9 turnaround 17 response 0
 P2 wait 20 turnaround 24 response 20
